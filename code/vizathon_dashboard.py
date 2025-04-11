@@ -73,8 +73,8 @@ if gps_file and recovery_file and capability_file and ipa_file:
         st.subheader("📈 Advanced Analysis")
 
         st.markdown("### 🔁 1. Regression: Predicting Peak Speed")
-        regression_df = gps_df.dropna(subset=["peak_speed", "distance", "distance_over_24", "accel_count_2.5"])
-        X = regression_df[["distance", "distance_over_24", "accel_count_2.5"]]
+        regression_df = gps_df.dropna(subset=["peak_speed", "distance", "distance_over_24", "accel_count_2_5"])
+        X = regression_df[["distance", "distance_over_24", "accel_count_2_5"]]
         y = regression_df["peak_speed"]
         model = LinearRegression().fit(X, y)
         regression_df["predicted"] = model.predict(X)
@@ -86,7 +86,7 @@ if gps_file and recovery_file and capability_file and ipa_file:
         st.caption("Prediction accuracy helps track player performance; try non-linear models later.")
 
         st.markdown("### 🔍 2. Clustering: Player Load Profiles (via PCA)")
-        cluster_data = gps_df[["player", "distance", "distance_over_24", "distance_over_27", "accel_count_2.5", "accel_count_4.5", "peak_speed"]].dropna()
+        cluster_data = gps_df[["player", "distance", "distance_over_24", "distance_over_27", "accel_count_2_5", "accel_count_4_5", "peak_speed"]].dropna()
         cluster_data_std = StandardScaler().fit_transform(cluster_data.drop("player", axis=1))
         kmeans = KMeans(n_clusters=3, random_state=42).fit(cluster_data_std)
         pca = PCA(n_components=2)
