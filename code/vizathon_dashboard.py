@@ -64,7 +64,7 @@ if gps_file and recovery_file and capability_file and ipa_file:
         st.caption("Highlights sprint thresholds — ideal to flag conditioning or injury risks.")
 
         st.markdown("**🫧 Chart 4: Acceleration vs Distance Bubble View**")
-        fig = px.scatter(gps_df, x="distance", y="accel_count_2.5", size="accel_count_4.5", color="peak_speed",
+        fig = px.scatter(gps_df, x="distance", y="accel_decel_over_2_5", size="accel_decel_over_4_5", color="peak_speed",
                          title="Acceleration vs Distance Bubble Chart", hover_name="player")
         st.plotly_chart(fig)
         st.caption("Top-right red bubbles = sessions with high acceleration + distance → monitor for overload.")
