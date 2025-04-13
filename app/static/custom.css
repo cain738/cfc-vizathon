@@ -1,0 +1,60 @@
+
+/* Google Font */
+@import url('https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap');
+
+/* Global font */
+html, body, [class*="css"] {
+    font-family: 'Titillium Web', sans-serif;
+    color: #1C1C1C;
+}
+
+/* Headers */
+h1, h2, h3, h4 {
+    color: #034694;
+    font-weight: 700;
+}
+
+.stMainBlockContainer {
+    width: 100%;
+    max-width: 90%;
+}
+
+/* Sidebar */
+section[data-testid="stSidebar"] > div:first-child {
+    background-color: #034694;
+    color: white;
+}
+
+/* Buttons */
+.stButton > button {
+    background-color: #034694;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 0.5em 1em;
+    font-weight: 600;
+    transition: background-color 0.3s ease;
+}
+
+.stButton > button:hover {
+    background-color: #022E6E;
+}
+
+/* Plotly chart box styling */
+.stPlotlyChart {
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    margin: 0.5em;
+    background-color: white;
+}
+
+/* Markdown elements */
+.markdown-text-container {
+    font-size: 1rem;
+}
+
+/* Tabs styling */
+[data-baseweb="tab"] {
+    font-weight: 600;
+    color: #034694;
+}
