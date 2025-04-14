@@ -19,11 +19,9 @@ def load_capability_recovery_merged_data():
     
     # Ensure the output directory exists.
     output_dir = os.path.join("output", "csv")
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
+    
     
     output_path = os.path.join(output_dir, "capability_recovery_merged.csv")
-    merged_df.to_csv(output_path, index=False)
     
     return merged_df, output_path
 
@@ -63,9 +61,6 @@ def load_advanced_capability_recovery_data():
     
     # Export the advanced merged dataset
     output_dir = os.path.join("data", "csv")
-    if not os.path.exists(output_dir):
-        os.makedirs(output_dir)
     output_path = os.path.join(output_dir, "advanced_capability_recovery_merged.csv")
-    merged_df.to_csv(output_path, index=False)
     
     return merged_df, output_path

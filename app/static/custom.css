@@ -1,33 +1,65 @@
+/* ******** CUSTOM CSS FOR A CHELSEA FC PERFORMANCE INSIGHTS THEME ******** */
 
-/* Google Font */
+/* Define CSS Variables for easy theming */
+:root {
+    --primary-color: #034694;       /* Chelsea Blue */
+    --secondary-color: #D69A00;       /* Chelsea Gold */
+    --background-color: #FAF8F0;      /* Off-white background */
+    --text-color: #1C1C1C;            /* Dark text color */
+    --sidebar-bg: #034694;           /* Sidebar uses Chelsea Blue */
+    --hover-bg: #022E6E;             /* Darker blue for hover effects */
+    --dropdown-hover: #f7e4a1;         /* Light gold tint for dropdown hover */
+}
+
+/* Import Google Font */
 @import url('https://fonts.googleapis.com/css2?family=Titillium+Web:wght@400;600;700&display=swap');
 
-/* Global font */
+/* Global Styling */
 html, body, [class*="css"] {
     font-family: 'Titillium Web', sans-serif;
-    color: #1C1C1C;
+    color: var(--text-color);
+    background-color: var(--background-color);
+    margin: 0;
+    padding: 0;
 }
 
-/* Headers */
-h1, h2, h3, h4 {
-    color: #034694;
+/* Headers Styling */
+h1, h2, h3, h4, h5, h6 {
+    color: var(--primary-color);
     font-weight: 700;
+    text-shadow: 1px 1px 0 var(--secondary-color);
+    margin: 0.5em 0;
 }
 
+/* Main Container */
 .stMainBlockContainer {
     width: 100%;
     max-width: 90%;
+    margin: auto;
 }
 
-/* Sidebar */
+/* Sidebar Styling */
 section[data-testid="stSidebar"] > div:first-child {
-    background-color: #034694;
+    background-color: var(--sidebar-bg);
     color: white;
+    padding: 1rem;
+}
+section[data-testid="stSidebar"] * {
+    color: white !important;
+}
+section[data-testid="stSidebar"] .stSelectbox label,
+section[data-testid="stSidebar"] .stMultiSelect label,
+section[data-testid="stSidebar"] label {
+    color: white !important;
+}
+section[data-testid="stSidebar"] .css-1cpxqw2 {
+    background-color: var(--sidebar-bg) !important;
+    color: white !important;
 }
 
-/* Buttons */
+/* Buttons Styling */
 .stButton > button {
-    background-color: #034694;
+    background-color: var(--primary-color);
     color: white;
     border: none;
     border-radius: 8px;
@@ -35,26 +67,96 @@ section[data-testid="stSidebar"] > div:first-child {
     font-weight: 600;
     transition: background-color 0.3s ease;
 }
-
 .stButton > button:hover {
-    background-color: #022E6E;
+    background-color: var(--secondary-color);
 }
 
-/* Plotly chart box styling */
+/* Plotly Chart Container Styling */
 .stPlotlyChart {
     border-radius: 12px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-    margin: 0.5em;
+    margin: 0.5em 0;
     background-color: white;
 }
 
-/* Markdown elements */
+/* Markdown Text Container */
 .markdown-text-container {
     font-size: 1rem;
+    line-height: 1.5;
 }
 
-/* Tabs styling */
+/* Tabs Styling */
 [data-baseweb="tab"] {
     font-weight: 600;
-    color: #034694;
+    color: var(--primary-color);
+    padding: 0.5em 1em;
+    border-radius: 8px;
+    transition: background-color 0.3s ease;
 }
+[data-baseweb="tab"]:hover {
+    background-color: var(--hover-bg);
+}
+
+/* ******** CUSTOM MULTI-SELECT STYLING (Bootstrap-Inspired) ******** */
+
+/* Selected Tags (Pills) */
+[data-baseweb="tag"] {
+    background-color: var(--secondary-color) !important; /* Chelsea Gold */
+    color: #ffffff !important;
+    font-weight: 600;
+    border-radius: 12px;                
+    margin: 2px 4px;
+    padding: 4px 10px;
+    border: none;
+}
+
+/* Remove Icon inside Tags */
+[data-baseweb="tag"] svg {
+    fill: #ffffff !important;
+}
+
+/* Dropdown Options: Add a checkmark for selected items */
+[data-baseweb="select"] [role="option"][aria-selected="true"]::before {
+    content: "✓ ";
+    color: var(--secondary-color);
+    font-weight: bold;
+}
+
+/* Dropdown Option Hover Effect */
+[data-baseweb="select"] [role="option"]:hover {
+    background-color: var(--dropdown-hover);
+    cursor: pointer;
+}
+
+/* Overall Dropdown Container Styling */
+[data-baseweb="select"] {
+    border-radius: 8px;
+    border: 1px solid var(--primary-color);
+}
+
+/* ******** CUSTOM NAVIGATION (Multi-Page Sidebar Links) ******** */
+
+/* Style the multi-page sidebar links */
+[data-testid="stSidebarNav"] a {
+    color: #FFFFFF !important;
+    font-weight: 600;
+    font-size: 1rem;
+    display: block;
+    padding: 8px 16px;
+    margin: 6px 0;
+    text-decoration: none;
+    border-radius: 6px;
+    background-color: transparent;
+    transition: background-color 0.3s ease;
+}
+[data-testid="stSidebarNav"] a:hover {
+    background-color: var(--hover-bg);
+    color: #FFFFFF !important;
+}
+
+/* Remove text truncation for sidebar links if necessary */
+[data-testid="stSidebarNav"] .css-truncate {
+    display: none !important;
+}
+
+/* ******** END OF CUSTOM CSS ******** */

@@ -1,6 +1,9 @@
+"""
+# ⚽ GPS Dashboard
+"""
 # gps_page.py (in app/pages)
 import streamlit as st
-
+import os
 from analysis.data_loader import load_gps_data
 from charts.gps_charts import (
     distance_bar_chart, distance_line_chart, distance_box_by_session, distance_cumulative_area,
@@ -9,16 +12,19 @@ from charts.gps_charts import (
 )
 from utils.ui_styling import load_local_css
 load_local_css()
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+STATIC_DIR = os.path.join(BASE_DIR, "static")
 def show_gps_page():
     # st.set_page_config(layout="wide")
-    st.sidebar.image("app/static/chelsea_logo.png", width=120)
+    st.image(os.path.join(STATIC_DIR, "chelsea_logo.png"), width=150)
     st.title("📍 GPS Metrics Dashboard")
 
     df = load_gps_data()
 
     # Player filter
     players = sorted(df["player"].unique())
-    selected_players = st.sidebar.multiselect("Select Player(s)", players, default=players)
+    selected_players = st.sidebar.multiselect("Select Player(s)", players, default=players[:5])
     df = df[df["player"].isin(selected_players)]
 
     # Main tabs

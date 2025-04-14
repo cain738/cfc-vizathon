@@ -58,11 +58,13 @@ def plot_movement_heatmap(df):
     pivot = df.groupby(["player", "movement"])["BenchmarkPct"].mean().reset_index()
     pivot = pivot.pivot(index="player", columns="movement", values="BenchmarkPct")
 
+    custom_scale = [[0, "#034694"], [0.5, "#D69A00"], [1, "#FAF8F0"]]
+
     fig = go.Figure(data=go.Heatmap(
         z=pivot.values,
         x=pivot.columns,
         y=pivot.index,
-        colorscale="Viridis",
+        colorscale=custom_scale,
         colorbar=dict(title="Avg Benchmark %")
     ))
     fig.update_layout(title="Avg Benchmark % by Movement and Player")
@@ -97,7 +99,9 @@ def plot_player_expression_bar(df):
         y="BenchmarkPct",
         color="expression",
         barmode="group",
-        title="Avg Benchmark % by Expression per Player"
+        title="Avg Benchmark % by Expression per Player",
+        color_discrete_sequence=["#034694", "#D69A00", "#022E6E", "#F0F2F6"]  # Customize as needed
+
     )
     st.plotly_chart(fig, use_container_width=True)
 
@@ -124,11 +128,13 @@ def plot_quality_heatmap(df):
     pivot = df.groupby(["player", "quality"])["BenchmarkPct"].mean().reset_index()
     pivot = pivot.pivot(index="player", columns="quality", values="BenchmarkPct")
 
+    custom_scale = [[0, "#034694"], [0.5, "#D69A00"], [1, "#FAF8F0"]]
+
     fig = go.Figure(data=go.Heatmap(
         z=pivot.values,
         x=pivot.columns,
         y=pivot.index,
-        colorscale="Plasma",
+        colorscale=custom_scale,
         colorbar=dict(title="Avg Benchmark %")
     ))
     fig.update_layout(title="Avg Benchmark % by Quality and Player")
@@ -215,11 +221,14 @@ def plot_combined_heatmap(df: pd.DataFrame):
     """
     grouped = df.groupby(["player", "movement"])["BenchmarkPct"].mean().reset_index()
     pivot = grouped.pivot(index="player", columns="movement", values="BenchmarkPct")
+    
+    custom_scale = [[0, "#034694"], [0.5, "#D69A00"], [1, "#FAF8F0"]]
+
     fig = go.Figure(data=go.Heatmap(
         z=pivot.values,
         x=pivot.columns,
         y=pivot.index,
-        colorscale="Cividis",
+        colorscale=custom_scale,
         colorbar=dict(title="Avg BenchmarkPct")
     ))
     fig.update_layout(title="Capability Heatmap (Merged Data)")
@@ -239,11 +248,13 @@ def plot_movement_recovery_correlation_heatmap(corr_df: pd.DataFrame):
     recovery_columns = [col for col in corr_df.columns if col != "movement"]
     pivot = corr_df.set_index("movement")[recovery_columns]
     
+    custom_scale = [[0, "#034694"], [0.5, "#D69A00"], [1, "#FAF8F0"]]
+
     fig = go.Figure(data=go.Heatmap(
         z=pivot.values,
         x=pivot.columns,
         y=pivot.index,
-        colorscale="RdBu",
+        colorscale=custom_scale,
         zmin=-1,
         zmax=1,
         colorbar=dict(title="Correlation")

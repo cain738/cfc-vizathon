@@ -1,6 +1,6 @@
 [theme]
-primaryColor = "#034694"
-backgroundColor = "#ffffff"
-secondaryBackgroundColor = "#f0f2f6"
+primaryColor = "#034694"  # Chelsea Blue remains primary
+backgroundColor = "#FAF8F0"  # A warmer, off-white tone for the main background
+secondaryBackgroundColor = "#E4E4E4"  # A complementary light gray
 textColor = "#1C1C1C"
-font = "sans serif"
+font = "Titillium Web"  # To match the custom.css font if desired

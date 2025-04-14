@@ -1,5 +1,9 @@
+"""
+# ⚽ Capability Dashboard
+"""
 # capability_page.py (in app/pages)
 import streamlit as st
+import os
 from analysis.data_loader import load_capability_data
 from feature_engineering.data_wrangler import load_capability_recovery_merged_data
 from analysis.advanced_analysis import compute_movement_recovery_correlations
@@ -22,15 +26,18 @@ from charts.capability_charts import (
 from utils.ui_styling import load_local_css
 load_local_css()
 
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+STATIC_DIR = os.path.join(BASE_DIR, "static")
+
 def show_capability_page():
     # st.set_page_config(layout="wide")
-    st.sidebar.image("app/static/chelsea_logo.png", width=120)
+    st.image(os.path.join(STATIC_DIR, "chelsea_logo.png"), width=150)
     st.title("🏋️ Physical Capability Dashboard")
 
     # 1) Load + filter data
     df = load_capability_data()
     players = sorted(df["player"].unique())
-    selected_players = st.sidebar.multiselect("Select Player(s)", players, default=players)
+    selected_players = st.sidebar.multiselect("Select Player(s)", players, default=players[:5])
     df = df[df["player"].isin(selected_players)]
 
     # 2) Tabs

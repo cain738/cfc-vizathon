@@ -1,6 +1,12 @@
+"""
+# ⚽ Chelsea FC Dashboard
+"""
 import streamlit as st
-
+import os
 from utils.ui_styling import load_local_css
+
+BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+STATIC_DIR = os.path.join(BASE_DIR, "app", "static")
 
 def show_home():
     """
@@ -8,7 +14,7 @@ def show_home():
     """
     st.title("Chelsea FC Vizathon - Home")
     # Adjust the image path according to your working directory:
-    st.image("app/static/chelsea_logo.png", width=150)
+    st.image(os.path.join(STATIC_DIR, "chelsea_logo.png"), width=150)
     st.markdown("""
     ### Welcome to the Chelsea FC Performance Dashboard
 
@@ -24,6 +30,7 @@ def show_home():
     """)
 
 def main():
+    print(STATIC_DIR)
     load_local_css()
     show_home()
 
