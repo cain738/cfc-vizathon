@@ -37,7 +37,7 @@ def show_recovery_page():
 
     # Player filter
     players = sorted(df["player"].unique())
-    selected_players = st.sidebar.selectbox("Select Player(s)", players, default=players[:5])
+    selected_players = st.sidebar.multiselect("Select Player(s)", players, default=players[:5])
     df = df[df["player"].isin(selected_players)]
 
     # Main Tabs
