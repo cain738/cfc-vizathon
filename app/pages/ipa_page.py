@@ -19,7 +19,7 @@ def show_ipa_page():
 
     df = load_ipa_data()
     players = sorted(df["player"].unique())
-    selected_players = st.sidebar.multiselect("Select Player(s)", players, default=players)
+    selected_players = st.sidebar.multiselect("Select Player(s)", players, default=players[:5])
     df = df[df["player"].isin(selected_players)]
 
     tab1, tab2, tab3 = st.tabs([

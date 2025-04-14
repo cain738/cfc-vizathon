@@ -28,7 +28,7 @@ def show_capability_page():
 
     # Sidebar filters
     players = sorted(cap_df["player"].unique())
-    selected_players = st.sidebar.multiselect("Select Player(s)", players, default=players)
+    selected_players = st.sidebar.multiselect("Select Player(s)", players, default=players[:5])
     cap_df = cap_df[cap_df["player"].isin(selected_players)]
     cap_recovery_df = cap_recovery_df[cap_recovery_df["player"].isin(selected_players)]
 

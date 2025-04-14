@@ -19,7 +19,7 @@ def show_recovery_page():
     # Load and filter data
     df = load_recovery_data()
     players = sorted(df["player"].unique())
-    selected_players = st.sidebar.multiselect("Select Player(s)", players, default=players)
+    selected_players = st.sidebar.multiselect("Select Player(s)", players, default=players[:5])
     date_range = st.sidebar.date_input("Select Date Range", [df["date"].min(), df["date"].max()])
     
     df = df[df["player"].isin(selected_players)]

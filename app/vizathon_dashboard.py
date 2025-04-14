@@ -50,7 +50,7 @@ def show_home():
     gps_summary = merged_gps.groupby("player")["training_load"].mean().sort_values(ascending=False).head()
     recovery_summary = recovery_df.groupby("player")["emboss_baseline_score"].mean().sort_values(ascending=False).head()
     capability_summary = capability_df.groupby("player")["BenchmarkPct"].mean().sort_values(ascending=False).head()
-    ipa_summary = ipa_df.groupby("player")["target_performance"].apply(
+    ipa_summary = ipa_df.groupby("player")["tracking_status"].apply(
         lambda x: (x == "Achieved").sum() / len(x)
     ).sort_values(ascending=False).head()
 
@@ -97,7 +97,7 @@ def show_home():
         st.markdown("""
         - Goals like **Fitness**, **Strength**, and **Speed** are frequently achieved.
         - Tactical and mindset areas show higher risk.
-        - **Mason Mount** has the highest goal achievement rate overall.
+        - **Andreas Christensen** has the highest goal achievement rate overall.
         """)
         fig = px.bar(ipa_summary, x=ipa_summary.index, y=ipa_summary.values,
                      labels={"x": "Player", "y": "Achievement Rate"},
