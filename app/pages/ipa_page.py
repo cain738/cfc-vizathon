@@ -1,58 +1,45 @@
-"""
-# ⚽ Individual Player Areas (IPA) Dashboard
-"""
-# ipa_page.py (in app/pages)
+# app/pages/ipa_page.py
+
 import streamlit as st
-import os
+from utils.ui_styling import load_local_css
 from analysis.data_loader import load_ipa_data
 from charts.ipa_charts import (
-    plot_ipa_category_distribution,
-    plot_ipa_type_pie,
-    plot_ipa_heatmap,
-    plot_tracking_status_stacked_bar,
-    plot_ipa_timeline_chart,
-    plot_player_radar_chart,
-    plot_player_comparison_table
+    plot_performance_stacked_charts,
+    plot_recovery_stacked_charts,
+    plot_performance_importance_radar,
+    plot_recovery_importance_radar,
+    plot_ipa_player_rankings,
+    plot_ipa_comparison_view
 )
-from utils.ui_styling import load_local_css
+
 load_local_css()
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-STATIC_DIR = os.path.join(BASE_DIR, "static")
+
 def show_ipa_page():
-    # st.set_page_config(layout="wide")
-    st.image(os.path.join(STATIC_DIR, "chelsea_logo.png"), width=150)
     st.title("📌 Individual Priority Areas (IPA) Dashboard")
 
     df = load_ipa_data()
     players = sorted(df["player"].unique())
-    selected_players = st.sidebar.multiselect("Select Player(s)", players, default=players[:5])
+    selected_players = st.sidebar.multiselect("Select Player(s)", players, default=players)
     df = df[df["player"].isin(selected_players)]
 
     tab1, tab2, tab3 = st.tabs([
-        "🧭 Overview",
-        "📊 Tracking & Timelines",
-        "👥 Player Comparisons"
+        "⚽ Performance Goals", "♻️ Recovery Goals", "📊 Comparison & Rankings"
     ])
 
     with tab1:
-        st.subheader("IPA Distribution Overview")
-        col1, col2 = st.columns(2)
-        with col1:
-            plot_ipa_category_distribution(df)
-        with col2:
-            plot_ipa_type_pie(df)
-        st.markdown("---")
-        plot_ipa_heatmap(df)
+        st.subheader("Tracking Status Across Performance Goals")
+        plot_performance_stacked_charts(df)
+        plot_performance_importance_radar(df)
 
     with tab2:
-        st.subheader("Goal Progress and Timelines")
-        plot_tracking_status_stacked_bar(df)
-        plot_ipa_timeline_chart(df)
+        st.subheader("Tracking Status Across Recovery Goals")
+        plot_recovery_stacked_charts(df)
+        plot_recovery_importance_radar(df)
 
     with tab3:
-        st.subheader("Player-Level Comparison")
-        plot_player_radar_chart(df, selected_players)
-        plot_player_comparison_table(df, selected_players)
+        st.subheader("IPA Ranking and Comparison")
+        plot_ipa_player_rankings(df)
+        plot_ipa_comparison_view(df)
 
 if __name__ == "__main__":
     show_ipa_page()

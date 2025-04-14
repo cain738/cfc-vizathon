@@ -1,82 +1,57 @@
-"""
-# ⚽ Recovery Dashboard
-"""
-# recovery_page.py (in app/pages)
+# app/pages/recovery_page.py
+
 import streamlit as st
-import os
-from analysis.data_loader import load_recovery_data
-from analysis.advanced_analysis import compute_recovery_feature_importances
-from charts.recovery_charts import (
-    show_avg_recovery_line,
-    show_emboss_trend,
-    show_stacked_domain_area,
-    show_player_domain_line,
-    show_recovery_box,
-    show_recovery_violin,
-    show_avg_bar_by_player,
-    show_day_by_domain_heatmap,
-    show_domain_correlation_heatmap,
-    show_player_date_heatmap,
-    show_matchday_impact_heatmap,
-    show_emboss_momentum_heatmap,
-    show_feature_importances,
-    show_player_comparison_overview
-)
+import pandas as pd
 from utils.ui_styling import load_local_css
+from analysis.data_loader import load_recovery_data
+from charts.recovery_charts import (
+    plot_completeness_radar, plot_completeness_heatmap, plot_completeness_scatter,
+    plot_composite_radar, plot_composite_heatmap, plot_composite_scatter,
+    plot_recovery_rankings, plot_recovery_player_comparison
+)
+
+# ✅ Required: first thing in the file
 load_local_css()
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-STATIC_DIR = os.path.join(BASE_DIR, "static")
-
 def show_recovery_page():
-    # st.set_page_config(layout="wide")
-    st.image(os.path.join(STATIC_DIR, "chelsea_logo.png"), width=150)
-    st.title("💪 Recovery Status Dashboard")
+    st.title("♻️ Recovery Dashboard")
 
+    # Load and filter data
     df = load_recovery_data()
-
-    # Player filter
     players = sorted(df["player"].unique())
-    selected_players = st.sidebar.multiselect("Select Player(s)", players, default=players[:5])
+    selected_players = st.sidebar.multiselect("Select Player(s)", players, default=players)
+    date_range = st.sidebar.date_input("Select Date Range", [df["date"].min(), df["date"].max()])
+    
     df = df[df["player"].isin(selected_players)]
+    df = df[(df["date"] >= pd.to_datetime(date_range[0])) & (df["date"] <= pd.to_datetime(date_range[1]))]
 
-    # Main Tabs
-    tab1, tab2, tab3, tab4 = st.tabs([
-        "📈 Daily Trends",
-        "📊 Domain Distribution",
-        "🌡️ Heatmaps",
-        "👤 Player Comparison"
+    # Tabs
+    tab1, tab2, tab3 = st.tabs([
+        "✅ Completeness", "🧠 Composite Metrics", "👥 Comparison & Rankings"
     ])
 
     with tab1:
-        st.subheader("Recovery Trends Over Time")
-        show_avg_recovery_line(df)
-        show_emboss_trend(df)
-        show_stacked_domain_area(df)
-        show_player_domain_line(df)
+        st.subheader("Recovery Completeness Analysis")
+        col1, col2 = st.columns(2)
+        with col1:
+            plot_completeness_radar(df)
+        with col2:
+            plot_completeness_heatmap(df)
+        plot_completeness_scatter(df)
 
     with tab2:
-        st.subheader("Recovery Score Distribution")
-        show_recovery_box(df)
-        show_recovery_violin(df)
-        show_avg_bar_by_player(df, chart_key="avg_bar_main_tab")
+        st.subheader("Composite Recovery Metrics Analysis")
+        col1, col2 = st.columns(2)
+        with col1:
+            plot_composite_radar(df)
+        with col2:
+            plot_composite_heatmap(df)
+        plot_composite_scatter(df)
 
     with tab3:
-        st.subheader("Heatmaps for Recovery")
-        fi_df, df_model = compute_recovery_feature_importances()
-        
-        show_feature_importances(fi_df)
-        show_day_by_domain_heatmap(df)
-        show_domain_correlation_heatmap(df)
-        show_player_date_heatmap(df)
-        show_matchday_impact_heatmap(df_model)
-        show_emboss_momentum_heatmap(df_model)
-        # show_recovery_heatmap(df)
-        # show_emboss_heatmap(df)
-
-    with tab4:
-        st.subheader("Compare Players")
-        show_player_comparison_overview(df)
+        st.subheader("Player Recovery Comparison & Rankings")
+        plot_recovery_rankings(df)
+        plot_recovery_player_comparison(df)
 
 if __name__ == "__main__":
     show_recovery_page()

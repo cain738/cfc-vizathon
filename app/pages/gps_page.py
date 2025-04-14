@@ -1,89 +1,71 @@
-"""
-# ⚽ GPS Dashboard
-"""
-# gps_page.py (in app/pages)
+# app/pages/gps_page.py
 import streamlit as st
-import os
-from analysis.data_loader import load_gps_data
-from charts.gps_charts import (
-    distance_bar_chart, distance_line_chart, distance_box_by_session, distance_cumulative_area,
-    accel_bar, accel_box_session, accel_vs_speed, accel_over_time,
-    hr_stacked_bar, hr_violin, hr_area_over_time, hr_zone_ratio
-)
+import pandas as pd
+from analysis.data_loader import load_gps_data, load_calendar_data
+from feature_engineering.data_wrangler import merge_gps_with_calendar
 from utils.ui_styling import load_local_css
+from charts.gps_charts import (
+    plot_distance_stacked_bar, plot_distance_regression,
+    plot_distance_radar, plot_acceleration_stacked_bar,
+    plot_acceleration_regression, plot_acceleration_radar,
+    plot_heart_rate_stacked_bar, plot_heart_rate_regression,
+    plot_heart_rate_radar, plot_gps_player_comparison
+)
+
+# Required before anything else
 load_local_css()
 
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-STATIC_DIR = os.path.join(BASE_DIR, "static")
 def show_gps_page():
-    # st.set_page_config(layout="wide")
-    st.image(os.path.join(STATIC_DIR, "chelsea_logo.png"), width=150)
-    st.title("📍 GPS Metrics Dashboard")
+    st.title("🛰 GPS Metrics Dashboard")
 
-    df = load_gps_data()
+    # Load and merge GPS + calendar data
+    gps_df = load_gps_data()
+    cal_df = load_calendar_data()
+    df = merge_gps_with_calendar(gps_df, cal_df)
 
-    # Player filter
+    # Sidebar filters
     players = sorted(df["player"].unique())
-    selected_players = st.sidebar.multiselect("Select Player(s)", players, default=players[:5])
+    selected_players = st.sidebar.multiselect("Select Player(s)", players, default=players)
+    date_range = st.sidebar.date_input("Select Date Range", [df["date"].min(), df["date"].max()])
+    
     df = df[df["player"].isin(selected_players)]
+    df = df[(df["date"] >= pd.to_datetime(date_range[0])) & (df["date"] <= pd.to_datetime(date_range[1]))]
 
-    # Main tabs
+    # Tabs
     tab1, tab2, tab3, tab4 = st.tabs([
-        "📆 Distance Ran Analysis", 
-        "⚡ Acceleration Analysis", 
-        "❤️ Heart Rate Analysis",
-        "📈 Player Comparison"
+        "📏 Distance Ran", "🚀 Acceleration Bursts", "💓 Heart Rate", "👥 Player Comparison"
     ])
 
-    # Distance Ran Analysis
     with tab1:
-        st.subheader("Distance Metrics")
+        st.subheader("Distance Ran Analysis")
         col1, col2 = st.columns(2)
         with col1:
-            distance_bar_chart(df)
+            plot_distance_stacked_bar(df)
         with col2:
-            distance_line_chart(df)
+            plot_distance_radar(df)
+        plot_distance_regression(df)
 
-        col3, col4 = st.columns(2)
-        with col3:
-            distance_box_by_session(df)
-        with col4:
-            distance_cumulative_area(df)
-
-    # Acceleration Analysis
     with tab2:
-        st.subheader("Acceleration Events")
+        st.subheader("Acceleration Burst Analysis")
         col1, col2 = st.columns(2)
         with col1:
-            accel_bar(df)
+            plot_acceleration_stacked_bar(df)
         with col2:
-            accel_box_session(df)
+            plot_acceleration_radar(df)
+        plot_acceleration_regression(df)
 
-        col3, col4 = st.columns(2)
-        with col3:
-            accel_vs_speed(df)
-        with col4:
-            accel_over_time(df)
-
-    # Heart Rate Analysis
     with tab3:
-        st.subheader("Heart Rate Zones")
+        st.subheader("Heart Rate Zone Analysis")
         col1, col2 = st.columns(2)
         with col1:
-            hr_stacked_bar(df)
+            plot_heart_rate_stacked_bar(df)
         with col2:
-            hr_violin(df)
+            plot_heart_rate_radar(df)
+        plot_heart_rate_regression(df)
 
-        col3, col4 = st.columns(2)
-        with col3:
-            hr_area_over_time(df)
-        with col4:
-            hr_zone_ratio(df)
-
-    # Player Comparison (basic layout to be extended)
     with tab4:
-        st.subheader("Player Comparison")
-        st.info("This section will include player-specific comparisons with date filtering and key metrics.")
+        st.subheader("Compare Player GPS Metrics")
+        plot_gps_player_comparison(df)
 
 if __name__ == "__main__":
     show_gps_page()

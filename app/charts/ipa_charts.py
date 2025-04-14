@@ -1,92 +1,137 @@
-# ipa_charts.py (in app/charts)
 import streamlit as st
+import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.preprocessing import OneHotEncoder
 
-# --- Overview Tab Charts ---
-def plot_ipa_category_distribution(df):
-    fig = px.bar(
-        df.groupby("priority_category").size().reset_index(name="count"),
-        x="priority_category", y="count", color="priority_category",
-        title="IPA Goals by Priority Category"
-    )
-    st.plotly_chart(fig, use_container_width=True)
+# ============ 1. Performance Tracking Charts ============
 
-def plot_ipa_type_pie(df):
-    fig = px.pie(
-        df, names="type", title="Habit vs Outcome Goal Distribution",
-        color_discrete_sequence=px.colors.qualitative.Set3
-    )
-    st.plotly_chart(fig, use_container_width=True)
+def plot_performance_stacked_charts(df: pd.DataFrame):
+    st.markdown("##### Tracking Distribution for Performance Areas")
 
-def plot_ipa_heatmap(df):
-    pivot = df.groupby(["player", "priority_category"]).size().unstack(fill_value=0)
-    fig = go.Figure(data=go.Heatmap(
-        z=pivot.values,
-        x=pivot.columns,
-        y=pivot.index,
-        colorscale="Viridis",
-        colorbar=dict(title="Goal Count")
-    ))
-    fig.update_layout(
-        title="IPA Distribution by Player and Category",
-        xaxis_title="Priority Category",
-        yaxis_title="Player"
-    )
-    st.plotly_chart(fig, use_container_width=True)
+    performance_df = df[df["priority_category"].str.lower() == "performance"]
 
-# --- Tracking & Timelines Tab ---
-def plot_tracking_status_stacked_bar(df):
-    df_group = df.groupby(["priority_category", "tracking_status"]).size().reset_index(name="count")
-    fig = px.bar(
-        df_group,
-        x="priority_category", y="count", color="tracking_status",
-        title="Tracking Status by Category",
-        barmode="stack"
-    )
-    st.plotly_chart(fig, use_container_width=True)
+    if performance_df.empty:
+        st.warning("No performance IPA data available.")
+        return
 
-def plot_ipa_timeline_chart(df):
-    if "target_set_date" in df and "review_date" in df:
-        df_sorted = df.dropna(subset=["target_set_date", "review_date"]).sort_values("player")
-        fig = px.timeline(
-            df_sorted,
-            x_start="target_set_date",
-            x_end="review_date",
-            y="player",
-            color="priority_category",
-            title="IPA Timeline by Player"
-        )
-        fig.update_yaxes(autorange="reversed")
+    for area in performance_df["area"].unique():
+        area_df = performance_df[performance_df["area"] == area]
+        plot = area_df.groupby(["player", "tracking_status"]).size().unstack().fillna(0)
+        fig = px.bar(plot, title=f"{area} Tracking Status", barmode="stack")
         st.plotly_chart(fig, use_container_width=True)
 
-# --- Player Comparisons Tab ---
-def plot_player_radar_chart(df, selected_players):
-    if not selected_players:
-        st.info("Please select at least one player to display radar chart.")
+# ============ 2. Performance Radar ============
+
+def plot_performance_importance_radar(df: pd.DataFrame):
+    st.markdown("##### Feature Importance Radar (Performance IPAs → Target Performance)")
+
+    filtered = df[df["priority_category"].str.lower() == "performance"].copy()
+
+    if filtered.empty:
+        st.warning("No performance IPAs found.")
         return
-    radar_df = df[df["player"].isin(selected_players)]
-    category_count = radar_df.groupby(["player", "priority_category"]).size().unstack(fill_value=0)
-    categories = list(category_count.columns)
-    fig = go.Figure()
-    for player in category_count.index:
-        fig.add_trace(go.Scatterpolar(
-            r=category_count.loc[player].values,
-            theta=categories,
-            fill='toself',
-            name=player
-        ))
-    fig.update_layout(
-        polar=dict(radialaxis=dict(visible=True)),
-        title="Player IPA Category Radar Chart"
-    )
+
+    categorical_features = ["area", "type"]
+    encoded = pd.get_dummies(filtered[categorical_features], drop_first=False)
+
+    y = filtered["tracking_status"].astype("category").cat.codes
+
+    model = RandomForestClassifier()
+    model.fit(encoded, y)
+
+    fig = go.Figure(go.Scatterpolar(
+        r=model.feature_importances_,
+        theta=encoded.columns,
+        fill='toself'
+    ))
+    fig.update_layout(title="Performance IPA Importance", polar=dict(radialaxis=dict(visible=True)))
     st.plotly_chart(fig, use_container_width=True)
 
-def plot_player_comparison_table(df, selected_players):
-    if not selected_players:
+# ============ 3. Recovery Tracking Charts ============
+
+def plot_recovery_stacked_charts(df: pd.DataFrame):
+    st.markdown("##### Tracking Distribution for Recovery Areas")
+
+    recovery_df = df[df["priority_category"].str.lower() == "recovery"]
+
+    if recovery_df.empty:
+        st.warning("No recovery IPA data available.")
         return
-    filtered = df[df["player"].isin(selected_players)]
-    summary = filtered.groupby(["player", "tracking_status"]).size().unstack(fill_value=0)
-    st.markdown("### Player IPA Status Summary")
-    st.dataframe(summary)
+
+    for area in recovery_df["area"].unique():
+        area_df = recovery_df[recovery_df["area"] == area]
+        plot = area_df.groupby(["player", "tracking_status"]).size().unstack().fillna(0)
+        fig = px.bar(plot, title=f"{area} Tracking Status", barmode="stack")
+        st.plotly_chart(fig, use_container_width=True)
+
+# ============ 4. Recovery Radar ============
+
+def plot_recovery_importance_radar(df: pd.DataFrame):
+    st.markdown("##### Feature Importance Radar (Recovery IPAs → Target Performance)")
+
+    filtered = df[df["priority_category"].str.lower() == "recovery"].copy()
+
+    if filtered.empty:
+        st.warning("No recovery IPAs found.")
+        return
+
+    categorical_features = ["area", "type"]
+    encoded = pd.get_dummies(filtered[categorical_features], drop_first=False)
+
+    y = filtered["tracking_status"].astype("category").cat.codes
+
+    model = RandomForestClassifier()
+    model.fit(encoded, y)
+
+    fig = go.Figure(go.Scatterpolar(
+        r=model.feature_importances_,
+        theta=encoded.columns,
+        fill='toself'
+    ))
+    fig.update_layout(title="Recovery IPA Importance", polar=dict(radialaxis=dict(visible=True)))
+    st.plotly_chart(fig, use_container_width=True)
+
+# ============ 5. Player Rankings ============
+
+def plot_ipa_player_rankings(df: pd.DataFrame):
+    st.markdown("##### Player Rankings by IPA Achievement Rate")
+    
+    print(df.columns)
+
+    achievement_rates = (
+        df.groupby("player")["tracking_status"]
+        .apply(lambda x: (x == "Achieved").sum() / len(x))
+        .reset_index(name="achievement_rate")
+        .sort_values(by="achievement_rate", ascending=False)
+    )
+
+    fig = px.bar(achievement_rates, x="player", y="achievement_rate", title="Goal Achievement Rate by Player")
+    st.plotly_chart(fig, use_container_width=True)
+
+# ============ 6. Player Comparison ============
+
+def plot_ipa_comparison_view(df: pd.DataFrame):
+    st.markdown("##### Compare Two Players on IPA Goal Achievements")
+    
+    print(df.columns)
+
+    players = sorted(df["player"].unique())
+    p1 = st.selectbox("Player 1", players, key="ipa_p1")
+    p2 = st.selectbox("Player 2", players, key="ipa_p2")
+
+    goals = df["area"].unique()
+
+    p1_data = df[(df["player"] == p1) & (df["tracking_status"] == "Achieved")]["area"].value_counts()
+    p2_data = df[(df["player"] == p2) & (df["tracking_status"] == "Achieved")]["area"].value_counts()
+
+    compare_df = pd.DataFrame({
+        "area": goals,
+        p1: [p1_data.get(area, 0) for area in goals],
+        p2: [p2_data.get(area, 0) for area in goals]
+    })
+
+    compare_df = compare_df.melt(id_vars="area", var_name="Player", value_name="Achieved Count")
+    fig = px.bar(compare_df, x="area", y="Achieved Count", color="Player", barmode="group", title="IPA Area Achievement Comparison")
+    st.plotly_chart(fig, use_container_width=True)

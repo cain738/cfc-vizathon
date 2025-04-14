@@ -1,72 +1,141 @@
+# app/charts/gps_charts.py
+
 import streamlit as st
+import pandas as pd
 import plotly.express as px
 import plotly.graph_objects as go
-import pandas as pd
+from sklearn.ensemble import RandomForestRegressor
+from sklearn.preprocessing import StandardScaler
 
-# Distance Charts
-def distance_bar_chart(df: pd.DataFrame):
-    fig = px.bar(df.groupby("player")["distance"].mean().reset_index(),
-                 x="player", y="distance", title="Average Distance by Player")
+# ===================== DISTANCE =========================
+
+def plot_distance_stacked_bar(df: pd.DataFrame):
+    st.markdown("##### Distance Ratios per Player")
+    df["over_21_ratio"] = df["distance_over_21"] / df["distance"]
+    df["over_24_ratio"] = df["distance_over_24"] / df["distance"]
+    df["over_27_ratio"] = df["distance_over_27"] / df["distance"]
+    
+    bar_df = df.groupby("player")[["over_21_ratio", "over_24_ratio", "over_27_ratio"]].mean().reset_index()
+    fig = px.bar(bar_df, x="player", y=["over_21_ratio", "over_24_ratio", "over_27_ratio"],
+                 title="High-Speed Distance Proportions", barmode="stack")
     st.plotly_chart(fig, use_container_width=True)
 
-def distance_line_chart(df: pd.DataFrame):
-    fig = px.line(df.groupby("date")["distance"].mean().reset_index(),
-                  x="date", y="distance", title="Avg Distance Over Time")
+def plot_distance_regression(df: pd.DataFrame):
+    st.markdown("##### Regression: Distance Ratios vs. Training Load")
+    for ratio, label in zip(["distance_over_21", "distance_over_24", "distance_over_27"],
+                            ["Over 21", "Over 24", "Over 27"]):
+        df[f"{label}_ratio"] = df[ratio] / df["distance"]
+        fig = px.scatter(df, x=f"{label}_ratio", y="training_load",
+                         trendline="ols", title=f"{label} Ratio vs. Training Load")
+        st.plotly_chart(fig, use_container_width=True)
+
+def plot_distance_radar(df: pd.DataFrame):
+    st.markdown("##### Radar: Distance Metrics Feature Importance")
+    X = df[["distance_over_21", "distance_over_24", "distance_over_27"]].fillna(0)
+    y = df["training_load"]
+    
+    model = RandomForestRegressor()
+    model.fit(X, y)
+    importances = model.feature_importances_
+
+    fig = go.Figure(go.Scatterpolar(
+        r=importances,
+        theta=X.columns,
+        fill='toself',
+        name='Feature Importance'
+    ))
+    fig.update_layout(polar=dict(radialaxis=dict(visible=True)), showlegend=False)
     st.plotly_chart(fig, use_container_width=True)
 
-def distance_box_by_session(df: pd.DataFrame):
-    fig = px.box(df, x="session_type", y="distance", color="session_type",
-                 title="Distance by Session Type")
+# ================== ACCELERATION ========================
+
+def plot_acceleration_stacked_bar(df: pd.DataFrame):
+    print(df.columns)
+    st.markdown("##### Acceleration Ratios per Player")
+    df["accel_decel_total"] = df["accel_decel_over_2_5"] + df["accel_decel_over_3_5"] + df["accel_decel_over_4_5"]
+    df["accel_2_5_ratio"] = df["accel_decel_over_2_5"] / df["accel_decel_total"]
+    df["accel_3_5_ratio"] = df["accel_decel_over_3_5"] / df["accel_decel_total"]
+    df["accel_4_5_ratio"] = df["accel_decel_over_4_5"] / df["accel_decel_total"]
+
+    bar_df = df.groupby("player")[["accel_2_5_ratio", "accel_3_5_ratio", "accel_4_5_ratio"]].mean().reset_index()
+    fig = px.bar(bar_df, x="player", y=["accel_2_5_ratio", "accel_3_5_ratio", "accel_4_5_ratio"],
+                 title="Acceleration Ratios", barmode="stack")
     st.plotly_chart(fig, use_container_width=True)
 
-def distance_cumulative_area(df: pd.DataFrame):
-    df_grouped = df.groupby("date")["distance"].sum().cumsum().reset_index(name="cumulative_distance")
-    fig = px.area(df_grouped, x="date", y="cumulative_distance", title="Cumulative Distance Over Time")
+def plot_acceleration_regression(df: pd.DataFrame):
+    st.markdown("##### Regression: Acceleration Ratios vs. Training Load")
+    for col, label in zip(["accel_2_5_ratio", "accel_3_5_ratio", "accel_4_5_ratio"],
+                          [">2.5", ">3.5", ">4.5"]):
+        fig = px.scatter(df, x=col, y="training_load",
+                         trendline="ols", title=f"{label} Ratio vs. Training Load")
+        st.plotly_chart(fig, use_container_width=True)
+
+def plot_acceleration_radar(df: pd.DataFrame):
+    st.markdown("##### Radar: Acceleration Feature Importance")
+    X = df[["accel_decel_over_2_5", "accel_decel_over_3_5", "accel_decel_over_4_5"]].fillna(0)
+    y = df["training_load"]
+    model = RandomForestRegressor()
+    model.fit(X, y)
+    importances = model.feature_importances_
+
+    fig = go.Figure(go.Scatterpolar(
+        r=importances,
+        theta=X.columns,
+        fill='toself',
+        name='Feature Importance'
+    ))
+    fig.update_layout(polar=dict(radialaxis=dict(visible=True)), showlegend=False)
     st.plotly_chart(fig, use_container_width=True)
 
-# Acceleration Charts
-def accel_bar(df: pd.DataFrame):
-    fig = px.bar(df.groupby("player")["accel_decel_over_2_5"].mean().reset_index(),
-                 x="player", y="accel_decel_over_2_5", title="Avg Accel/Decel Events by Player")
+# ================== HEART RATE ========================
+
+def plot_heart_rate_stacked_bar(df: pd.DataFrame):
+    st.markdown("##### Heart Rate Zone Ratios")
+    zones = [f"hr_zone_{i}_hms" for i in range(1, 6)]
+    for z in zones:
+        df[f"{z}_ratio"] = df[z] / df["day_duration"]
+    bar_df = df.groupby("player")[[f"{z}_ratio" for z in zones]].mean().reset_index()
+    fig = px.bar(bar_df, x="player", y=[f"{z}_ratio" for z in zones],
+                 title="Heart Rate Zone Distribution", barmode="stack")
     st.plotly_chart(fig, use_container_width=True)
 
-def accel_box_session(df: pd.DataFrame):
-    fig = px.box(df, x="session_type", y="accel_decel_over_2_5", color="session_type",
-                 title="Accel/Decel Events by Session Type")
+def plot_heart_rate_regression(df: pd.DataFrame):
+    st.markdown("##### Regression: Heart Rate Zones vs. Training Load")
+    for i in range(1, 6):
+        col = f"hr_zone_{i}_hms"
+        df[f"{col}_ratio"] = df[col] / df["day_duration"]
+        fig = px.scatter(df, x=f"{col}_ratio", y="training_load",
+                         trendline="ols", title=f"Zone {i} Ratio vs. Training Load")
+        st.plotly_chart(fig, use_container_width=True)
+
+def plot_heart_rate_radar(df: pd.DataFrame):
+    st.markdown("##### Radar: Heart Rate Feature Importance")
+    X = df[[f"hr_zone_{i}_hms" for i in range(1, 6)]].fillna(0)
+    y = df["training_load"]
+    model = RandomForestRegressor()
+    model.fit(X, y)
+    importances = model.feature_importances_
+    fig = go.Figure(go.Scatterpolar(
+        r=importances,
+        theta=X.columns,
+        fill='toself',
+        name='Feature Importance'
+    ))
+    fig.update_layout(polar=dict(radialaxis=dict(visible=True)), showlegend=False)
     st.plotly_chart(fig, use_container_width=True)
 
-def accel_vs_speed(df: pd.DataFrame):
-    fig = px.scatter(df, x="accel_decel_over_2_5", y="peak_speed", color="player",
-                     title="Accel Events vs Peak Speed")
-    st.plotly_chart(fig, use_container_width=True)
+# ============= PLAYER COMPARISON ======================
 
-def accel_over_time(df: pd.DataFrame):
-    fig = px.line(df.groupby("date")["accel_decel_over_2_5"].mean().reset_index(),
-                  x="date", y="accel_decel_over_2_5", title="Avg Accel Events Over Time")
-    st.plotly_chart(fig, use_container_width=True)
-
-# Heart Rate Charts
-def hr_stacked_bar(df: pd.DataFrame):
-    grouped = df.groupby("player")[["hr_zone_1_hms", "hr_zone_2_hms", "hr_zone_3_hms", "hr_zone_4_hms"]].sum()
-    grouped = grouped.reset_index().melt(id_vars="player", var_name="HR Zone", value_name="Minutes")
-    fig = px.bar(grouped, x="player", y="Minutes", color="HR Zone", title="Heart Rate Zone Time by Player")
-    st.plotly_chart(fig, use_container_width=True)
-
-def hr_violin(df: pd.DataFrame):
-    fig = px.violin(df, x="player", y="hr_zone_3_hms", box=True, title="Zone 3 HR Time Distribution")
-    st.plotly_chart(fig, use_container_width=True)
-
-def hr_area_over_time(df: pd.DataFrame):
-    df_grouped = df.groupby("date")[["hr_zone_1_hms", "hr_zone_2_hms", "hr_zone_3_hms", "hr_zone_4_hms"]].mean()
-    df_grouped = df_grouped.reset_index()
-    fig = go.Figure()
-    for col in df_grouped.columns[1:]:
-        fig.add_trace(go.Scatter(x=df_grouped["date"], y=df_grouped[col], stackgroup='one', name=col))
-    fig.update_layout(title="Heart Rate Zones Over Time")
-    st.plotly_chart(fig, use_container_width=True)
-
-def hr_zone_ratio(df: pd.DataFrame):
-    zone_totals = df[["hr_zone_1_hms", "hr_zone_2_hms", "hr_zone_3_hms", "hr_zone_4_hms"]].sum()
-    zone_df = pd.DataFrame({"Zone": zone_totals.index, "Total Time": zone_totals.values})
-    fig = px.pie(zone_df, names="Zone", values="Total Time", title="Total Time in Each HR Zone")
-    st.plotly_chart(fig, use_container_width=True)
+def plot_gps_player_comparison(df: pd.DataFrame):
+    st.markdown("### Compare Two Players Over Time")
+    player_list = sorted(df["player"].unique())
+    player1 = st.selectbox("Player 1", player_list, key="gps_comp_1")
+    player2 = st.selectbox("Player 2", player_list, key="gps_comp_2")
+    
+    compare_df = df[df["player"].isin([player1, player2])]
+    compare_df = compare_df.sort_values("date")
+    
+    metrics = ["distance", "accel_decel_total", "day_duration", "training_load"]
+    for metric in metrics:
+        fig = px.line(compare_df, x="date", y=metric, color="player", title=f"{metric} over Time")
+        st.plotly_chart(fig, use_container_width=True)
